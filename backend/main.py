@@ -5,8 +5,9 @@ from pydantic import BaseModel
 from database import SessionLocal, engine
 import models
 from fastapi.middleware.cors import CORSMiddleware
+from core.config import settings
 
-app = FastAPI()
+app = FastAPI(title=settings.PROJECT_NAME,version=settings.PROJECT_VERSION)
 
 origins = [
     'http://localhost:3000',
@@ -30,7 +31,7 @@ class SongModel(SongBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 def get_db():
@@ -46,7 +47,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 models.Base.metadata.create_all(bind=engine)
 
 @app.post("/songs/", response_model=SongModel)
-async def create_song(song: SongBase, db: Session = db_dependency):
+async def create_song(song: SongBase, db: db_dependency):
     db_song = models.Song(**song.model_dump())
     db.add(db_song)
     db.commit()
