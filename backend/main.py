@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
-from typing import Annotated
+from typing import Annotated, List
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import SessionLocal, engine
@@ -53,3 +53,11 @@ async def create_song(song: SongBase, db: db_dependency):
     db.commit()
     db.refresh(db_song)
     return db_song
+
+@app.get("/songs/{genre}", response_model=List[SongModel])
+async def get_songs(db: db_dependency, genre: str = None, limit: int = 100):
+    query = db.query(models.Song)
+    if genre:
+        query = query.filter(models.Song.genre == genre)
+    songs = query.limit(limit).all()
+    return songs
