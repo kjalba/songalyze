@@ -11,11 +11,14 @@ app = FastAPI(title=settings.PROJECT_NAME,version=settings.PROJECT_VERSION)
 
 origins = [
     'http://localhost:3000',
+    'http://localhost:5173',
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 class SongBase(BaseModel):
@@ -54,7 +57,7 @@ async def create_song(song: SongBase, db: db_dependency):
     db.refresh(db_song)
     return db_song
 
-@app.get("/songs/{genre}", response_model=List[SongModel])
+@app.get("/songs/", response_model=List[SongModel])
 async def get_songs(db: db_dependency, genre: str = None, limit: int = 100):
     query = db.query(models.Song)
     if genre:
