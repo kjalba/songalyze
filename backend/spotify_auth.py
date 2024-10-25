@@ -1,7 +1,8 @@
 import httpx
+from core.config import settings
 
-CLIENT_ID = "your_client_id"
-CLIENT_SECRET = "your_client_secret"
+CLIENT_ID = settings.CLIENT_ID
+CLIENT_SECRET = settings.CLIENT_SECRET
 
 def get_spotify_access_token() -> str:
     url = "https://accounts.spotify.com/api/token"
