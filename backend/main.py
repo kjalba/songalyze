@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, Query
-from typing import Annotated, List, Dict
+from typing import Annotated, List, Dict, Optional
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import SessionLocal, engine
@@ -24,13 +24,12 @@ app.add_middleware(
 )
 
 class SongBase(BaseModel):
-    title: str
-    artist: str
-    chord_progression: str
-    mood: str
-    genre: str
-    bpm: int
-    lyrics: str
+      track_name: str
+      artist_name: str
+      popularity: int
+      genres: List[str]  # Default from artist but overrideable
+      key: Optional[str] = None  # Manually entered key (e.g., "D Major")
+      chord_progression: Optional[str] = None  # Manually entered chord progression
 
 class SongModel(SongBase):
     id: int
@@ -64,6 +63,21 @@ async def create_song(song: SongBase, db: db_dependency):
     db.commit()
     db.refresh(db_song)
     return db_song
+
+@app.post("/favorites/", response_model=SongModel)
+async def add_favorite_song(
+    track_name: str, artist_name: str, popularity: int, genres: List[str], db: db_dependency
+):
+    song = models.Song(
+        track_name=track_name,
+        artist_name=artist_name,
+        popularity=popularity,
+        genres=genres,
+    )
+    db.add(song)
+    db.commit()
+    db.refresh(song)
+    return song
 
 @app.get("/songs/", response_model=List[SongModel])
 async def get_songs(db: db_dependency, genre: str = None, limit: int = 100):
