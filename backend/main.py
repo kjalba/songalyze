@@ -87,6 +87,16 @@ async def get_songs(db: db_dependency, genre: str = None, limit: int = 100):
     songs = query.limit(limit).all()
     return songs
 
+@app.get("/favorites/", response_model=List[SongModel])
+async def get_favorites(db: db_dependency, genre: str = Query(None)):
+    query = db.query(models.Song)
+    
+    if genre:
+        query = query.filter(models.Song.genres.any(genre))
+    
+    songs = query.all()
+    return songs
+
 @app.get("/genres/", response_model=List[str])
 async def get_genres():
     headers = get_spotify_headers()
