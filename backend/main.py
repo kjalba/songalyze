@@ -21,7 +21,7 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_methods=["GET", "POST", "OPTIONS", "PUT"],
+    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
@@ -199,3 +199,13 @@ async def update_song(
     db.commit()
     db.refresh(song)
     return song
+
+@app.delete("/songs/{id}", status_code=204)
+async def delete_song(id: int, db: Session = Depends(get_db)):
+    song = db.query(models.Song).filter(models.Song.id == id).first()
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+
+    db.delete(song)
+    db.commit()
+    return {"message": "Song deleted successfully"}

@@ -12,7 +12,7 @@ interface Song {
 
 const FavoritesPage: React.FC = () => {
   const [favorites, setFavorites] = useState<Song[]>([]);
-  const [editingId, setEditingId] = useState<number | null>(null); // Track which song is being edited
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<{ key: string; chord_progression: string }>({
     key: '',
     chord_progression: '',
@@ -49,15 +49,22 @@ const FavoritesPage: React.FC = () => {
             song.id === id ? { ...song, ...editData } : song
           )
         );
-        setEditingId(null); // Exit edit mode
+        setEditingId(null);
       })
       .catch((error) => console.error('Error saving song:', error));
   };
 
-  // Cancel editing
-  const cancelEditing = () => {
-    setEditingId(null);
+  // Delete a song
+  const deleteSong = (id: number) => {
+    axios.delete(`http://localhost:8000/songs/${id}`)
+      .then(() => {
+        setFavorites((prev) => prev.filter((song) => song.id !== id));
+      })
+      .catch((error) => console.error('Error deleting song:', error));
   };
+
+  // Cancel editing
+  const cancelEditing = () => setEditingId(null);
 
   return (
     <div>
@@ -87,6 +94,7 @@ const FavoritesPage: React.FC = () => {
                 <p>Key: {song.key || 'N/A'}</p>
                 <p>Chord Progression: {song.chord_progression || 'N/A'}</p>
                 <button onClick={() => startEditing(song)}>Edit</button>
+                <button onClick={() => deleteSong(song.id)}>Delete</button>
               </div>
             )}
           </li>
